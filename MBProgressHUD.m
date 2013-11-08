@@ -61,7 +61,6 @@ static const CGFloat kDetailsLabelFontSize = 12.f;
 - (void)updateIndicators;
 - (void)handleGraceTimer:(NSTimer *)theTimer;
 - (void)handleMinShowTimer:(NSTimer *)theTimer;
-- (void)setTransformForCurrentOrientation:(BOOL)animated;
 - (void)cleanUp;
 - (void)launchExecution;
 - (void)deviceOrientationDidChange:(NSNotification *)notification;
@@ -302,15 +301,6 @@ static const CGFloat kDetailsLabelFontSize = 12.f;
 
 - (void)handleMinShowTimer:(NSTimer *)theTimer {
 	[self hideUsingAnimation:useAnimation];
-}
-
-#pragma mark - View Hierrarchy
-
-- (void)didMoveToSuperview {
-	// We need to take care of rotation ourselfs if we're adding the HUD to a window
-	if ([self.superview isKindOfClass:[UIWindow class]]) {
-		[self setTransformForCurrentOrientation:NO];
-	}
 }
 
 #pragma mark - Internal show & hide operations
@@ -728,39 +718,10 @@ static const CGFloat kDetailsLabelFontSize = 12.f;
 	if (!superview) {
 		return;
 	} else if ([superview isKindOfClass:[UIWindow class]]) {
-		[self setTransformForCurrentOrientation:YES];
+		return;
 	} else {
 		self.frame = self.superview.bounds;
 		[self setNeedsDisplay];
-	}
-}
-
-- (void)setTransformForCurrentOrientation:(BOOL)animated {	
-	// Stay in sync with the superview
-	if (self.superview) {
-		self.bounds = self.superview.bounds;
-		[self setNeedsDisplay];
-	}
-	
-	UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-	CGFloat radians = 0;
-	if (UIInterfaceOrientationIsLandscape(orientation)) {
-		if (orientation == UIInterfaceOrientationLandscapeLeft) { radians = -(CGFloat)M_PI_2; } 
-		else { radians = (CGFloat)M_PI_2; }
-		// Window coordinates differ!
-		self.bounds = CGRectMake(0, 0, self.bounds.size.height, self.bounds.size.width);
-	} else {
-		if (orientation == UIInterfaceOrientationPortraitUpsideDown) { radians = (CGFloat)M_PI; } 
-		else { radians = 0; }
-	}
-	rotationTransform = CGAffineTransformMakeRotation(radians);
-	
-	if (animated) {
-		[UIView beginAnimations:nil context:nil];
-	}
-	[self setTransform:rotationTransform];
-	if (animated) {
-		[UIView commitAnimations];
 	}
 }
 
